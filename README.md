@@ -5,7 +5,7 @@ MVC（Model / Repository / Service / Handler）構成で、記事の作成・一
 
 ## 開発環境
 
-- Go 1.23+（`go.mod` の toolchain 指定により自動取得）
+- Go 1.24+（`go.mod` の toolchain 指定により自動取得）
 - Gin v1.11
 - GORM は未使用（インメモリのリポジトリ実装）
 - 推奨: Docker / Make / golangci-lint / govulncheck（Makefileから実行）
