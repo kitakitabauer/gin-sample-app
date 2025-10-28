@@ -1,0 +1,12 @@
+.git
+.github
+tmp
+*.log
+*.tmp
+*.swp
+*.swo
+bin
+vendor
+README.md
+Makefile
+integration
