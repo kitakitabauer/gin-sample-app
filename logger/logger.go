@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -21,6 +22,9 @@ var (
 	Log *zap.Logger
 
 	mu sync.Mutex
+
+	atl      zap.AtomicLevel
+	atlReady bool
 )
 
 // Init builds a zap logger using the provided configuration.
@@ -39,8 +43,9 @@ func Init(cfg Config) error {
 		env = "dev"
 	}
 
+	atomicLevel := zap.NewAtomicLevelAt(level)
 	zapCfg := baseZapConfig(env)
-	zapCfg.Level = zap.NewAtomicLevelAt(level)
+	zapCfg.Level = atomicLevel
 	zapCfg.EncoderConfig.TimeKey = "timestamp"
 	zapCfg.EncoderConfig.MessageKey = "message"
 	zapCfg.EncoderConfig.LevelKey = "level"
@@ -65,6 +70,8 @@ func Init(cfg Config) error {
 		_ = Log.Sync()
 	}
 	Log = logger
+	atl = atomicLevel
+	atlReady = true
 	return nil
 }
 
@@ -77,6 +84,35 @@ func Sync() {
 		return
 	}
 	_ = Log.Sync()
+}
+
+// SetLevel updates the runtime log level using Zap's atomic level.
+func SetLevel(level string) error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if !atlReady {
+		return errors.New("logger not initialised")
+	}
+
+	parsed, err := parseLevel(level)
+	if err != nil {
+		return err
+	}
+
+	atl.SetLevel(parsed)
+	return nil
+}
+
+// CurrentLevel returns the active log level.
+func CurrentLevel() (zapcore.Level, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if !atlReady {
+		return zapcore.InfoLevel, errors.New("logger not initialised")
+	}
+	return atl.Level(), nil
 }
 
 func baseZapConfig(env string) zap.Config {

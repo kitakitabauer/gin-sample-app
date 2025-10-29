@@ -6,10 +6,15 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+func resetLogger() {
+	Sync()
+	Log = nil
+	atlReady = false
+}
+
 func TestInitSetsLogLevel(t *testing.T) {
 	t.Cleanup(func() {
-		Sync()
-		Log = nil
+		resetLogger()
 	})
 
 	err := Init(Config{Env: "prd", Level: "warn", Service: "api"})
@@ -41,5 +46,25 @@ func TestParseLevelDefault(t *testing.T) {
 	}
 	if lvl != zapcore.DebugLevel {
 		t.Fatalf("expected default debug level, got %s", lvl)
+	}
+}
+
+func TestSetLevel(t *testing.T) {
+	defer resetLogger()
+
+	if err := Init(Config{Env: "dev", Level: "info"}); err != nil {
+		t.Fatalf("init failed: %v", err)
+	}
+
+	if err := SetLevel("error"); err != nil {
+		t.Fatalf("set level failed: %v", err)
+	}
+
+	level, err := CurrentLevel()
+	if err != nil {
+		t.Fatalf("current level error: %v", err)
+	}
+	if level != zapcore.ErrorLevel {
+		t.Fatalf("expected error level, got %s", level)
 	}
 }

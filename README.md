@@ -118,6 +118,8 @@ make docker-clean             # Dockerイメージ削除
 | GET      | `/posts/:id`   | 記事の詳細を取得   |
 | PATCH    | `/posts/:id`   | 記事の部分更新     |
 | DELETE   | `/posts/:id`   | 記事の削除         |
+| GET      | `/admin/log-level` | 現在のログレベルを取得（APIキー必須） |
+| PUT      | `/admin/log-level` | ログレベルを更新（APIキー必須） |
 
 ### 例: 記事作成
 
@@ -129,6 +131,18 @@ curl -X POST http://localhost:8080/posts \
 ```
 
 > `API_KEY` を設定している場合は `X-API-Key` ヘッダーを忘れずに付与してください。
+
+### 例: 記事一覧取得
+
+```bash
+curl http://localhost:8080/posts
+```
+
+### 例: 記事詳細取得
+
+```bash
+curl http://localhost:8080/posts/1
+```
 
 ### 例: 記事の部分更新（タイトル変更）
 
@@ -144,6 +158,21 @@ curl -X PATCH http://localhost:8080/posts/1 \
 ```bash
 curl -X DELETE http://localhost:8080/posts/1 \
   -H "X-API-Key: your-api-key"
+```
+
+### 例: 現在のログレベル取得（管理API）
+
+```bash
+curl -H "X-API-Key: your-api-key" http://localhost:8080/admin/log-level
+```
+
+### 例: ログレベル変更（管理API）
+
+```bash
+curl -X PUT http://localhost:8080/admin/log-level \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{"level":"warn"}'
 ```
 
 ## テストと品質管理
@@ -179,9 +208,12 @@ curl -X DELETE http://localhost:8080/posts/1 \
 - `APP_ENV=prd` では JSON 形式の構造化ログを出力し、それ以外の環境では開発向けのカラー表示を行います。
 - すべてのログには `timestamp` / `level` / `message` に加えて `env` と `service`（固定値: `gin-sample-app`）が付与されます。
 - Gin のリクエストログは `status`, `latency`, `client_ip`, `user_agent` などのフィールドを含む構造化ログとして記録されます。
+- ランタイムでは `/admin/log-level` にアクセスすることでレベルを取得・更新できます。例：
+  - 取得: `curl -H "X-API-Key: your-api-key" http://localhost:8080/admin/log-level`
+  - 更新: `curl -X PUT -H "Content-Type: application/json" -H "X-API-Key: your-api-key" -d '{"level":"info"}' http://localhost:8080/admin/log-level`
+  - PUT リクエストが成功すると、旧レベル・新レベル・リクエスト送信元IPなどが Zap の Info ログとして監査出力されます。
 
 ## 今後の発展例
 
-- ランタイムでのログレベル切り替え（例: HTTPエンドポイント経由で `zap.AtomicLevel` を制御）
 - OpenAPI や Swagger を導入して API スキーマを共有
 - 認証・認可や中間層のミドルウェア追加
