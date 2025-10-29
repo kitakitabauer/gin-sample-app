@@ -7,7 +7,8 @@ MVC（Model / Repository / Service / Handler）構成で、記事の作成・一
 
 - Go 1.24+（`go.mod` の toolchain 指定により自動取得）
 - Gin v1.11
-- GORM は未使用（インメモリのリポジトリ実装）
+- 標準 `database/sql` + SQLite（modernc.org/sqlite）をデフォルト利用
+- PostgreSQL（pgx/v5）にも接続可能
 - 推奨: Docker / Make / golangci-lint / govulncheck（Makefileから実行）
 
 ## ファイル構成
@@ -38,6 +39,8 @@ gin-sample-app/
 | `PORT`    | `8080`        | HTTPサーバーの待受ポート   |
 | `LOG_LEVEL` | `debug`     | 将来的なログレベル設定用   |
 | `API_KEY`   | *(空文字)*  | 設定すると更新系APIで `X-API-Key` ヘッダー必須 |
+| `DB_DRIVER` | `sqlite`     | `sqlite` / `postgres` / `pgx` などドライバ名 |
+| `DB_DSN`    | `file:tmp/app.db?_foreign_keys=1` | ドライバへ渡す接続文字列 |
 
 ### `.env` サンプル
 
@@ -45,6 +48,8 @@ gin-sample-app/
 APP_ENV=dev
 PORT=8080
 LOG_LEVEL=debug
+DB_DRIVER=sqlite
+DB_DSN=file:tmp/app.db?_foreign_keys=1
 ```
 
 ## 初期セットアップ
@@ -54,6 +59,12 @@ cp .env.sample .env
 ```
 
 値を必要に応じて編集してから、以下の手順で起動してください。
+
+## データベース
+
+- デフォルトは SQLite（modernc.org/sqlite）です。`DB_DSN=file:tmp/app.db?_foreign_keys=1` により `tmp/app.db` が自動生成され、外部キー制約が有効になります。
+- PostgreSQL を利用する場合は `.env` に `DB_DRIVER=postgres` と接続文字列（例: `DB_DSN=postgres://user:pass@localhost:5432/gin_sample?sslmode=disable`）を指定してください。
+- アプリ起動時に `posts` テーブルが存在しなければ自動で作成します。
 
 ## 実行方法
 
@@ -156,7 +167,7 @@ curl -X DELETE http://localhost:8080/posts/1 \
 
 ## 今後の発展例
 
-- Repository を RDB（例: SQLite, PostgreSQL）実装へ差し替える
+- マイグレーションツール（goose, migrate 等）導入とスキーマ管理
 - Config / Logger を Zap + 構造化ログへ統合
 - OpenAPI や Swagger を導入して API スキーマを共有
 - 認証・認可や中間層のミドルウェア追加

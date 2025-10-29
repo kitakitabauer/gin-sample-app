@@ -2,21 +2,49 @@ package integration
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
+	dbpkg "github.com/kitakitabauer/gin-sample-app/internal/database"
 	"github.com/kitakitabauer/gin-sample-app/model"
 	"github.com/kitakitabauer/gin-sample-app/repository"
 	"github.com/kitakitabauer/gin-sample-app/service"
 )
 
-func newIntegrationService() *service.PostService {
-	repo := repository.NewInMemoryPostRepository()
-	return service.NewPostService(repo)
+func newIntegrationService(t *testing.T) (*service.PostService, func()) {
+	ctx := context.Background()
+	name := strings.ReplaceAll(t.Name(), "/", "_")
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+
+	db, err := dbpkg.Open(ctx, dbpkg.Config{
+		Driver:       "sqlite",
+		DSN:          dsn,
+		MaxOpenConns: 1,
+		MaxIdleConns: 1,
+	})
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if err := repository.EnsureSchema(ctx, db, "sqlite"); err != nil {
+		db.Close()
+		t.Fatalf("failed to ensure schema: %v", err)
+	}
+
+	repo := repository.NewSQLPostRepository(db, "sqlite")
+	svc := service.NewPostService(repo)
+
+	cleanup := func() {
+		db.Close()
+	}
+	return svc, cleanup
 }
 
 func TestPostLifecycleIntegration(t *testing.T) {
 	ctx := context.Background()
-	svc := newIntegrationService()
+	svc, cleanup := newIntegrationService(t)
+	defer cleanup()
 
 	original := model.Post{
 		Title:   "First Post",

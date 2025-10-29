@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/kitakitabauer/gin-sample-app/service"
 )
 
-func New() (*gin.Engine, error) {
+func New(db *sql.DB) (*gin.Engine, error) {
 	if err := logger.Init(config.AppConfig.Env); err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)
 	}
@@ -22,7 +23,7 @@ func New() (*gin.Engine, error) {
 	r.Use(gin.Recovery())
 	r.Use(middleware.GinZap())
 
-	postRepository := repository.NewInMemoryPostRepository()
+	postRepository := repository.NewSQLPostRepository(db, config.AppConfig.DatabaseDriver)
 	postService := service.NewPostService(postRepository)
 	postHandler := handler.NewPostHandler(postService)
 	postHandler.RegisterRoutes(r)

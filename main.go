@@ -11,14 +11,31 @@ import (
 	"time"
 
 	"github.com/kitakitabauer/gin-sample-app/config"
+	"github.com/kitakitabauer/gin-sample-app/internal/database"
 	"github.com/kitakitabauer/gin-sample-app/internal/server"
 	"github.com/kitakitabauer/gin-sample-app/logger"
+	"github.com/kitakitabauer/gin-sample-app/repository"
 	"go.uber.org/zap"
 )
 
 func main() {
 	config.Load()
-	r, err := server.New()
+	dbCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	db, err := database.Open(dbCtx, database.Config{
+		Driver: config.AppConfig.DatabaseDriver,
+		DSN:    config.AppConfig.DatabaseDSN,
+	})
+	cancel()
+	if err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+	defer db.Close()
+
+	if err := repository.EnsureSchema(context.Background(), db, config.AppConfig.DatabaseDriver); err != nil {
+		log.Fatalf("failed to ensure schema: %v", err)
+	}
+
+	r, err := server.New(db)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 	}

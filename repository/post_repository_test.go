@@ -2,20 +2,49 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
+	dbpkg "github.com/kitakitabauer/gin-sample-app/internal/database"
 	"github.com/kitakitabauer/gin-sample-app/model"
 )
 
-func TestInMemoryPostRepository_CreateAndFind(t *testing.T) {
-	repo := NewInMemoryPostRepository()
-	ctx := context.Background()
+func newTestSQLRepository(t *testing.T) (*SQLPostRepository, func()) {
+	t.Helper()
 
-	post := model.Post{
-		Title:   "title",
-		Content: "content",
-		Author:  "author",
+	name := strings.ReplaceAll(t.Name(), "/", "_")
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+
+	db, err := dbpkg.Open(context.Background(), dbpkg.Config{
+		Driver:       "sqlite",
+		DSN:          dsn,
+		MaxOpenConns: 1,
+		MaxIdleConns: 1,
+	})
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
 	}
+
+	if err := EnsureSchema(context.Background(), db, "sqlite"); err != nil {
+		db.Close()
+		t.Fatalf("failed to ensure schema: %v", err)
+	}
+
+	repo := NewSQLPostRepository(db, "sqlite")
+	cleanup := func() {
+		db.Close()
+	}
+
+	return repo, cleanup
+}
+
+func TestSQLPostRepository_CreateAndFind(t *testing.T) {
+	repo, cleanup := newTestSQLRepository(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	post := model.Post{Title: "title", Content: "content", Author: "author"}
 
 	created, err := repo.Create(ctx, post)
 	if err != nil {
@@ -44,33 +73,28 @@ func TestInMemoryPostRepository_CreateAndFind(t *testing.T) {
 	}
 }
 
-func TestInMemoryPostRepository_FindByID_NotFound(t *testing.T) {
-	repo := NewInMemoryPostRepository()
+func TestSQLPostRepository_FindByID_NotFound(t *testing.T) {
+	repo, cleanup := newTestSQLRepository(t)
+	defer cleanup()
 
 	if _, err := repo.FindByID(context.Background(), 1); err != ErrPostNotFound {
 		t.Fatalf("expected ErrPostNotFound, got %v", err)
 	}
 }
 
-func TestInMemoryPostRepository_Update(t *testing.T) {
-	repo := NewInMemoryPostRepository()
-	ctx := context.Background()
+func TestSQLPostRepository_Update(t *testing.T) {
+	repo, cleanup := newTestSQLRepository(t)
+	defer cleanup()
 
-	created, err := repo.Create(ctx, model.Post{
-		Title:   "title",
-		Content: "content",
-		Author:  "author",
-	})
+	ctx := context.Background()
+	created, err := repo.Create(ctx, model.Post{Title: "title", Content: "content", Author: "author"})
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)
 	}
 
 	newTitle := "new title"
 	newContent := "new content"
-	update := PostUpdate{
-		Title:   &newTitle,
-		Content: &newContent,
-	}
+	update := PostUpdate{Title: &newTitle, Content: &newContent}
 
 	updated, err := repo.Update(ctx, created.ID, update)
 	if err != nil {
@@ -86,15 +110,12 @@ func TestInMemoryPostRepository_Update(t *testing.T) {
 	}
 }
 
-func TestInMemoryPostRepository_Delete(t *testing.T) {
-	repo := NewInMemoryPostRepository()
-	ctx := context.Background()
+func TestSQLPostRepository_Delete(t *testing.T) {
+	repo, cleanup := newTestSQLRepository(t)
+	defer cleanup()
 
-	created, err := repo.Create(ctx, model.Post{
-		Title:   "title",
-		Content: "content",
-		Author:  "author",
-	})
+	ctx := context.Background()
+	created, err := repo.Create(ctx, model.Post{Title: "title", Content: "content", Author: "author"})
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)
 	}
