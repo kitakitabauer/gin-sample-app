@@ -37,7 +37,7 @@ gin-sample-app/
 |-----------|---------------|----------------------------|
 | `APP_ENV` | `dev`         | `dev` / `stg` / `prd`       |
 | `PORT`    | `8080`        | HTTPサーバーの待受ポート   |
-| `LOG_LEVEL` | `debug`     | 将来的なログレベル設定用   |
+| `LOG_LEVEL` | `debug`     | Zapのログレベル（`debug` / `info` / `warn` / `error` など） |
 | `API_KEY`   | *(空文字)*  | 設定すると更新系APIで `X-API-Key` ヘッダー必須 |
 | `DB_DRIVER` | `sqlite`     | `sqlite` / `postgres` / `pgx` などドライバ名 |
 | `DB_DSN`    | `file:tmp/app.db?_foreign_keys=1` | ドライバへ渡す接続文字列 |
@@ -175,10 +175,13 @@ curl -X DELETE http://localhost:8080/posts/1 \
 
 ## ログ
 
-アプリ起動時に `APP_ENV` とリッスンポート、`LOG_LEVEL` を標準出力に出力します（例: `starting gin-sample-app env=dev listen=:8080 log_level=debug`）。
+- `LOG_LEVEL` で Zap のログレベル（`debug` / `info` / `warn` / `error` など）を制御できます。デフォルトは `debug`。
+- `APP_ENV=prd` では JSON 形式の構造化ログを出力し、それ以外の環境では開発向けのカラー表示を行います。
+- すべてのログには `timestamp` / `level` / `message` に加えて `env` と `service`（固定値: `gin-sample-app`）が付与されます。
+- Gin のリクエストログは `status`, `latency`, `client_ip`, `user_agent` などのフィールドを含む構造化ログとして記録されます。
 
 ## 今後の発展例
 
-- Config / Logger を Zap + 構造化ログへ統合
+- ランタイムでのログレベル切り替え（例: HTTPエンドポイント経由で `zap.AtomicLevel` を制御）
 - OpenAPI や Swagger を導入して API スキーマを共有
 - 認証・認可や中間層のミドルウェア追加

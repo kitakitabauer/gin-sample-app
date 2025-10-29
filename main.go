@@ -19,6 +19,15 @@ import (
 
 func main() {
 	config.Load()
+
+	if err := logger.Init(logger.Config{
+		Env:     config.AppConfig.Env,
+		Level:   config.AppConfig.LogLevel,
+		Service: "gin-sample-app",
+	}); err != nil {
+		log.Fatalf("failed to init logger: %v", err)
+	}
+	defer logger.Sync()
 	dbCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	db, err := database.Open(dbCtx, database.Config{
 		Driver: config.AppConfig.DatabaseDriver,
@@ -26,19 +35,18 @@ func main() {
 	})
 	cancel()
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		logger.Log.Fatal("failed to connect database", zap.Error(err))
 	}
 	defer db.Close()
 
 	if err := database.MigrateUp(db, config.AppConfig.DatabaseDriver); err != nil {
-		log.Fatalf("failed to apply migrations: %v", err)
+		logger.Log.Fatal("failed to apply migrations", zap.Error(err))
 	}
 
 	r, err := server.New(db)
 	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
+		logger.Log.Fatal("failed to create server", zap.Error(err))
 	}
-	defer logger.Log.Sync()
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", config.AppConfig.Port),

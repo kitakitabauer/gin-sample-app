@@ -15,8 +15,11 @@ import (
 )
 
 func New(db *sql.DB) (*gin.Engine, error) {
-	if err := logger.Init(config.AppConfig.Env); err != nil {
-		return nil, fmt.Errorf("failed to init logger: %w", err)
+	if db == nil {
+		return nil, fmt.Errorf("db is nil")
+	}
+	if logger.Log == nil {
+		return nil, fmt.Errorf("logger is not initialised")
 	}
 
 	r := gin.New()
