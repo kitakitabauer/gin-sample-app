@@ -15,16 +15,32 @@ MVC（Model / Repository / Service / Handler）構成で、記事の作成・一
 
 ```
 gin-sample-app/
-├── main.go                # エントリーポイント。config読み込み・DI・ルーティング設定
-├── config/config.go       # 環境変数(APP_ENV, PORT, LOG_LEVEL)を読み込む
-├── handler/post_handler.go
-├── service/post_service.go
-├── repository/post_repository.go
-├── model/post.go
-├── internal/middleware/   # Gin用ミドルウェア（認証・ログ）
-├── integration/           # サービス＋リポジトリの統合テスト
-├── Dockerfile             # マルチステージビルド
-├── .env.sample            # 開発用設定サンプル
+├── main.go                         # エントリーポイント。config読み込み・DI・ルーティング設定
+├── cmd/
+│   └── migrate/main.go             # migrate CLI（ランタイムでマイグレーション実行）
+├── config/config.go                # 環境変数(APP_ENV, LOG_LEVEL, DB設定など)を読み込む
+├── handler/
+│   ├── admin_handler.go            # ログレベル管理API
+│   └── post_handler.go             # POST CRUD HTTPハンドラ
+├── internal/
+│   ├── database/
+│   │   ├── database.go             # DB接続ユーティリティ
+│   │   ├── migrate.go              # 埋め込みマイグレーション適用機能
+│   │   └── migrations/             # SQLite / Postgres 用マイグレーションSQL
+│   ├── middleware/
+│   │   ├── auth.go                 # APIキー認証
+│   │   └── logging.go              # 構造化アクセスログ
+│   └── server/server.go            # Ginサーバー組み立て
+├── logger/
+│   └── logger.go                   # Zapロガー初期化とランタイム制御
+├── model/post.go                   # ドメインモデル
+├── repository/
+│   └── post_repository.go          # SQL / in-memory リポジトリ
+├── service/post_service.go         # ビジネスロジック層
+├── integration/                    # サービス+リポジトリの統合テスト
+├── Dockerfile                      # マルチステージビルド
+├── Makefile                        # 開発用コマンド
+├── .env.sample                     # 開発用設定サンプル
 └── ...
 ```
 
