@@ -64,7 +64,16 @@ cp .env.sample .env
 
 - デフォルトは SQLite（modernc.org/sqlite）です。`DB_DSN=file:tmp/app.db?_foreign_keys=1` により `tmp/app.db` が自動生成され、外部キー制約が有効になります。
 - PostgreSQL を利用する場合は `.env` に `DB_DRIVER=postgres` と接続文字列（例: `DB_DSN=postgres://user:pass@localhost:5432/gin_sample?sslmode=disable`）を指定してください。
-- アプリ起動時に `posts` テーブルが存在しなければ自動で作成します。
+- アプリ起動時にマイグレーション (`golang-migrate/migrate`) を自動適用し、テーブルを最新の状態に更新します。
+
+### マイグレーションの操作
+
+- 最新化: `make migrate-up`
+- 指定ステップ移動: `make migrate-steps STEPS=1`
+- 全てロールバック: `make migrate-down`
+- 静的検査: `make migrate-lint`
+
+`cmd/migrate` は `.env` を読み込んだ上で `database/sql` を利用し、アプリと同じ接続設定でマイグレーションを実行します。
 
 ## 実行方法
 
@@ -144,6 +153,9 @@ curl -X DELETE http://localhost:8080/posts/1 \
 | `make test`     | `go test -v ./...`                    |
 | `make lint`     | `go vet ./...`                        |
 | `make vuln`     | `govulncheck ./...`（未インストール時は go install） |
+| `make migrate-up` | マイグレーションを最新まで適用 |
+| `make migrate-down` | マイグレーションを全てロールバック |
+| `make migrate-lint` | マイグレーションファイル構成を検証 |
 
 ### GitHub Actions CI
 
@@ -167,7 +179,6 @@ curl -X DELETE http://localhost:8080/posts/1 \
 
 ## 今後の発展例
 
-- マイグレーションツール（goose, migrate 等）導入とスキーマ管理
 - Config / Logger を Zap + 構造化ログへ統合
 - OpenAPI や Swagger を導入して API スキーマを共有
 - 認証・認可や中間層のミドルウェア追加

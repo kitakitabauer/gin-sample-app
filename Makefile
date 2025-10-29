@@ -1,7 +1,8 @@
-.PHONY: run build test lint dev vuln docker-build docker-run docker-clean
+.PHONY: run build test lint dev vuln docker-build docker-run docker-clean migrate-up migrate-down migrate-steps migrate-lint
 
 APP_NAME := gin-sample-app
 DOCKER_IMAGE ?= $(APP_NAME):latest
+MIGRATE := go run ./cmd/migrate
 
 run:
 	go run main.go
@@ -32,3 +33,19 @@ docker-run:
 
 docker-clean:
 	docker rmi $(DOCKER_IMAGE) || true
+
+migrate-up:
+	$(MIGRATE) -cmd up
+
+migrate-down:
+	$(MIGRATE) -cmd down
+
+migrate-steps:
+	@if [ -z "$(STEPS)" ]; then \
+		echo "Usage: make migrate-steps STEPS=1"; \
+		exit 1; \
+	fi
+	$(MIGRATE) -cmd steps -steps $(STEPS)
+
+migrate-lint:
+	go test ./internal/database -run TestMigrationFilesHavePairs -count=1

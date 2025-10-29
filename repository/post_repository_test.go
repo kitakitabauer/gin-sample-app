@@ -26,9 +26,9 @@ func newTestSQLRepository(t *testing.T) (*SQLPostRepository, func()) {
 		t.Fatalf("failed to open database: %v", err)
 	}
 
-	if err := EnsureSchema(context.Background(), db, "sqlite"); err != nil {
+	if err := dbpkg.MigrateUp(db, "sqlite"); err != nil {
 		db.Close()
-		t.Fatalf("failed to ensure schema: %v", err)
+		t.Fatalf("failed to apply migrations: %v", err)
 	}
 
 	repo := NewSQLPostRepository(db, "sqlite")

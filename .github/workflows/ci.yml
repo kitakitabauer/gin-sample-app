@@ -26,5 +26,8 @@ jobs:
       - name: Run govulncheck
         run: make vuln
 
+      - name: Lint migrations
+        run: make migrate-lint
+
       - name: Run tests
         run: make test

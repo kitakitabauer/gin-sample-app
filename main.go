@@ -14,7 +14,6 @@ import (
 	"github.com/kitakitabauer/gin-sample-app/internal/database"
 	"github.com/kitakitabauer/gin-sample-app/internal/server"
 	"github.com/kitakitabauer/gin-sample-app/logger"
-	"github.com/kitakitabauer/gin-sample-app/repository"
 	"go.uber.org/zap"
 )
 
@@ -31,8 +30,8 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := repository.EnsureSchema(context.Background(), db, config.AppConfig.DatabaseDriver); err != nil {
-		log.Fatalf("failed to ensure schema: %v", err)
+	if err := database.MigrateUp(db, config.AppConfig.DatabaseDriver); err != nil {
+		log.Fatalf("failed to apply migrations: %v", err)
 	}
 
 	r, err := server.New(db)

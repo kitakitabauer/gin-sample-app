@@ -173,30 +173,6 @@ func detectDialect(driver string) string {
 	}
 }
 
-// EnsureSchema はpostsテーブルを生成します（存在しない場合のみ）。
-func EnsureSchema(ctx context.Context, db *sql.DB, driver string) error {
-	stmt := `CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        author TEXT NOT NULL,
-        created_at TIMESTAMP NOT NULL
-    );`
-
-	if detectDialect(driver) == "postgres" {
-		stmt = `CREATE TABLE IF NOT EXISTS posts (
-            id BIGSERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL,
-            author TEXT NOT NULL,
-            created_at TIMESTAMPTZ NOT NULL
-        );`
-	}
-
-	_, err := db.ExecContext(ctx, stmt)
-	return err
-}
-
 // InMemoryPostRepositoryはPostRepositoryのメモリ上の実装です。
 type InMemoryPostRepository struct {
 	mu     sync.RWMutex

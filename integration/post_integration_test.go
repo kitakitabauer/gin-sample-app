@@ -27,9 +27,9 @@ func newIntegrationService(t *testing.T) (*service.PostService, func()) {
 		t.Fatalf("failed to open database: %v", err)
 	}
 
-	if err := repository.EnsureSchema(ctx, db, "sqlite"); err != nil {
+	if err := dbpkg.MigrateUp(db, "sqlite"); err != nil {
 		db.Close()
-		t.Fatalf("failed to ensure schema: %v", err)
+		t.Fatalf("failed to apply migrations: %v", err)
 	}
 
 	repo := repository.NewSQLPostRepository(db, "sqlite")
