@@ -38,6 +38,9 @@ gin-sample-app/
 │   └── post_repository.go          # SQL / in-memory リポジトリ
 ├── service/post_service.go         # ビジネスロジック層
 ├── integration/                    # サービス+リポジトリの統合テスト
+├── docs/
+│   ├── openapi.yaml                # OpenAPI 3.0 定義
+│   └── embed.go                    # 埋め込みヘルパー
 ├── Dockerfile                      # マルチステージビルド
 ├── Makefile                        # 開発用コマンド
 ├── .env.sample                     # 開発用設定サンプル
@@ -137,59 +140,12 @@ make docker-clean             # Dockerイメージ削除
 | GET      | `/admin/log-level` | 現在のログレベルを取得（APIキー必須） |
 | PUT      | `/admin/log-level` | ログレベルを更新（APIキー必須） |
 
-### 例: 記事作成
+## OpenAPI / API スキーマ共有
 
-```bash
-curl -X POST http://localhost:8080/posts \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: your-api-key" \
-  -d '{"title":"Gin入門","content":"本文","author":"Alice"}'
-```
-
-> `API_KEY` を設定している場合は `X-API-Key` ヘッダーを忘れずに付与してください。
-
-### 例: 記事一覧取得
-
-```bash
-curl http://localhost:8080/posts
-```
-
-### 例: 記事詳細取得
-
-```bash
-curl http://localhost:8080/posts/1
-```
-
-### 例: 記事の部分更新（タイトル変更）
-
-```bash
-curl -X PATCH http://localhost:8080/posts/1 \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: your-api-key" \
-  -d '{"title":"新しいタイトル"}'
-```
-
-### 例: 記事の削除
-
-```bash
-curl -X DELETE http://localhost:8080/posts/1 \
-  -H "X-API-Key: your-api-key"
-```
-
-### 例: 現在のログレベル取得（管理API）
-
-```bash
-curl -H "X-API-Key: your-api-key" http://localhost:8080/admin/log-level
-```
-
-### 例: ログレベル変更（管理API）
-
-```bash
-curl -X PUT http://localhost:8080/admin/log-level \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: your-api-key" \
-  -d '{"level":"warn"}'
-```
+- 仕様書は `docs/openapi.yaml` として管理し、アプリ起動中は `GET /openapi.yaml` でダウンロードできます。
+- ブラウザから `http://localhost:8080/docs/swagger`（Swagger UI）や `http://localhost:8080/docs/redoc`（ReDoc）にアクセスすると、組み込みビューアでスキーマを閲覧できます。
+- ローカルで独自に Swagger UI を起動する場合は `npx swagger-ui-watcher docs/openapi.yaml` も使えます。
+- スキーマを更新した場合は Pull Request に `docs/openapi.yaml` の差分が含まれるよう注意してください。
 
 ## テストと品質管理
 
@@ -201,6 +157,7 @@ curl -X PUT http://localhost:8080/admin/log-level \
 | `make migrate-up` | マイグレーションを最新まで適用 |
 | `make migrate-down` | マイグレーションを全てロールバック |
 | `make migrate-lint` | マイグレーションファイル構成を検証 |
+| `make openapi-lint` | OpenAPI スキーマを lint（Spectral） |
 
 ### GitHub Actions CI
 
@@ -231,5 +188,4 @@ curl -X PUT http://localhost:8080/admin/log-level \
 
 ## 今後の発展例
 
-- OpenAPI や Swagger を導入して API スキーマを共有
 - 認証・認可や中間層のミドルウェア追加

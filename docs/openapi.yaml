@@ -1,0 +1,217 @@
+openapi: 3.0.3
+info:
+  title: Gin Sample App API
+  version: 1.0.0
+  description: |
+    REST API for managing posts and runtime log levels.
+servers:
+  - url: https://localhost:8080
+    description: Local development server (replace with actual hostname)
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - content
+        - author
+        - created_at
+    CreatePostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+      required:
+        - title
+        - content
+        - author
+    UpdatePostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+      description: Any combination of fields may be provided for partial update.
+    LogLevelResponse:
+      type: object
+      properties:
+        level:
+          type: string
+          description: Current log level string (e.g., debug, info, warn)
+      required:
+        - level
+    UpdateLogLevelRequest:
+      type: object
+      properties:
+        level:
+          type: string
+          description: Desired log level (debug, info, warn, error, dpanic, panic, fatal)
+      required:
+        - level
+security:
+  - {}
+paths:
+  /posts:
+    get:
+      summary: List posts
+      operationId: listPosts
+      tags: [Posts]
+      responses:
+        '200':
+          description: A list of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+    post:
+      summary: Create a post
+      operationId: createPost
+      tags: [Posts]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Validation error
+        '401':
+          description: Missing or invalid API key
+  /posts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      summary: Get post by ID
+      operationId: getPost
+      tags: [Posts]
+      responses:
+        '200':
+          description: Post object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          description: Post not found
+    patch:
+      summary: Update post fields
+      operationId: updatePost
+      tags: [Posts]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+      responses:
+        '200':
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Validation error
+        '401':
+          description: Missing or invalid API key
+        '404':
+          description: Post not found
+    delete:
+      summary: Delete post
+      operationId: deletePost
+      tags: [Posts]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '204':
+          description: Post deleted
+        '401':
+          description: Missing or invalid API key
+        '404':
+          description: Post not found
+  /admin/log-level:
+    get:
+      summary: Get current log level
+      operationId: getLogLevel
+      tags: [Admin]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Current log level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogLevelResponse'
+        '401':
+          description: Missing or invalid API key
+    put:
+      summary: Update log level
+      operationId: updateLogLevel
+      tags: [Admin]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLogLevelRequest'
+      responses:
+        '200':
+          description: Updated log level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogLevelResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Missing or invalid API key

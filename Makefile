@@ -1,4 +1,4 @@
-.PHONY: run build test lint dev vuln docker-build docker-run docker-clean migrate-up migrate-down migrate-steps migrate-lint
+.PHONY: run build test lint dev vuln docker-build docker-run docker-clean migrate-up migrate-down migrate-steps migrate-lint openapi-lint
 
 APP_NAME := gin-sample-app
 DOCKER_IMAGE ?= $(APP_NAME):latest
@@ -49,3 +49,6 @@ migrate-steps:
 
 migrate-lint:
 	go test ./internal/database -run TestMigrationFilesHavePairs -count=1
+
+openapi-lint:
+	npx --yes @stoplight/spectral-cli lint docs/openapi.yaml

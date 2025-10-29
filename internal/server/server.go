@@ -34,6 +34,9 @@ func New(db *sql.DB) (*gin.Engine, error) {
 	adminHandler := handler.NewAdminHandler()
 	adminHandler.RegisterRoutes(r)
 
+	docsHandler := handler.NewDocsHandler()
+	docsHandler.RegisterRoutes(r)
+
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
