@@ -1,5 +1,8 @@
 # gin-sample-app
 
+[![CI](https://github.com/kitakitabauer/gin-sample-app/actions/workflows/ci.yml/badge.svg)](https://github.com/kitakitabauer/gin-sample-app/actions/workflows/ci.yml)
+![Dependabot](https://img.shields.io/badge/dependabot-enabled-brightgreen?logo=dependabot)
+
 ブログ記事の投稿・取得を想定した Gin 製のサンプル Web API です。  
 MVC（Model / Repository / Service / Handler）構成で、記事の作成・一覧・詳細・更新・削除の基本的な機能を提供します。
 
