@@ -4,6 +4,16 @@ info:
   version: 1.0.0
   description: |
     REST API for managing posts and runtime log levels.
+  contact:
+    name: API Support
+    url: https://github.com/kitakitabauer/gin-sample-app
+    email: support@example.com
+tags:
+  - name: Posts
+    description: Operations for creating, reading, updating, and deleting posts.
+  - name: Admin
+    description: Operations for managing application-level concerns such as logging.
+
 servers:
   - url: https://localhost:8080
     description: Local development server (replace with actual hostname)
@@ -80,6 +90,7 @@ paths:
   /posts:
     get:
       summary: List posts
+      description: Retrieve all posts ordered by ID in ascending order.
       operationId: listPosts
       tags: [Posts]
       responses:
@@ -96,6 +107,7 @@ paths:
                       $ref: '#/components/schemas/Post'
     post:
       summary: Create a post
+      description: Create a new post with title, content, and author.
       operationId: createPost
       tags: [Posts]
       security:
@@ -127,6 +139,7 @@ paths:
           format: int64
     get:
       summary: Get post by ID
+      description: Fetch a single post by its identifier.
       operationId: getPost
       tags: [Posts]
       responses:
@@ -140,6 +153,7 @@ paths:
           description: Post not found
     patch:
       summary: Update post fields
+      description: Apply partial updates to a post using one or more fields.
       operationId: updatePost
       tags: [Posts]
       security:
@@ -165,6 +179,7 @@ paths:
           description: Post not found
     delete:
       summary: Delete post
+      description: Remove a post permanently by its identifier.
       operationId: deletePost
       tags: [Posts]
       security:
@@ -179,6 +194,7 @@ paths:
   /admin/log-level:
     get:
       summary: Get current log level
+      description: Retrieve the current runtime log level for the service.
       operationId: getLogLevel
       tags: [Admin]
       security:
@@ -194,6 +210,7 @@ paths:
           description: Missing or invalid API key
     put:
       summary: Update log level
+      description: Update the runtime log level used by the service.
       operationId: updateLogLevel
       tags: [Admin]
       security:

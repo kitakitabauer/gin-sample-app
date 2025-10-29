@@ -146,6 +146,7 @@ make docker-clean             # Dockerイメージ削除
 - ブラウザから `http://localhost:8080/docs/swagger`（Swagger UI）や `http://localhost:8080/docs/redoc`（ReDoc）にアクセスすると、組み込みビューアでスキーマを閲覧できます。
 - ローカルで独自に Swagger UI を起動する場合は `npx swagger-ui-watcher docs/openapi.yaml` も使えます。
 - スキーマを更新した場合は Pull Request に `docs/openapi.yaml` の差分が含まれるよう注意してください。
+- Spectral による lint は `.spectral.yaml`（`extends: spectral:oas`）を参照して実行されます。
 
 ## テストと品質管理
 
