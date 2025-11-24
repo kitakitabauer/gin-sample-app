@@ -9,7 +9,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 	modernc.org/sqlite v1.39.1
 )
 
